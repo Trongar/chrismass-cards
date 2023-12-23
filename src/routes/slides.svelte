@@ -1,42 +1,61 @@
 <script lang="ts">
 	import { Presentation, Slide } from '@components'
-	import { signal } from '@motion'
+	import { onValue, ref } from 'firebase/database'
+	import { onMount } from 'svelte'
+	import { firebaseDb } from '@lib/utils/firebase'
+	type firebaseData = {
+		[key: string]: {
+			email: string
+			name: string
+			sound: string
+		}
+	}
+	type firebaseDataReg = Array<firebaseData[keyof firebaseData]>
 
-	const circle = signal(
-		{ x: 0, y: 200, r: 80, fill: '#00ffff' },
-		{ duration: 2000 }
-	)
+	let people: firebaseDataReg = []
 
-	async function animate() {
-		await circle.to({ x: 400, fill: '#ffff00' }, { delay: 600 })
-		await circle.to({ x: 0, fill: '#00ffff' }, { delay: 300 })
+	let peopleCount = 0
+	const audioPlayer = new Audio()
+
+	const runAnnouncer = (sound: string) => {
+		audioPlayer.pause()
+		audioPlayer.src = sound
+		audioPlayer.play()
 	}
 
-	function resetAnimation() {
-		circle.reset()
-	}
+	// Escuchar cambios en el valor de la slide actual en Firebase
+	onMount(() => {
+		const slideRef = ref(firebaseDb, 'usersRegistered')
+
+		onValue(slideRef, (snapshot) => {
+			const data: firebaseData = snapshot.val()
+			if (data) {
+				people = Object.values(data)
+				peopleCount = people.length
+			}
+		})
+	})
 </script>
 
-<Presentation>
-	<Slide animate>
-		<p class="font-bold text-8xl">🪄 Animotion</p>
-	</Slide>
-
-	<Slide on:in={animate} on:out={resetAnimation} animate>
-		<p class="font-bold text-6xl">🪄 Animotion</p>
-
-		<svg class="w-full h-[400px] mx-auto" viewBox="0 0 400 400">
-			<circle cx={$circle.x} cy={$circle.y} r={$circle.r} fill={$circle.fill} />
-			<text
-				x={$circle.x}
-				y={$circle.y}
-				font-size={$circle.r * 0.4}
-				font-family="JetBrains Mono"
-				text-anchor="middle"
-				dominant-baseline="middle"
+{#if !(peopleCount > 0)}
+	<Presentation>
+		<Slide animate>
+			<p class="font-bold text-8xl">No hay nadie en la sala</p>
+		</Slide>
+	</Presentation>
+{:else}
+	<Presentation>
+		<Slide animate>
+			<p class="font-bold text-8xl">Listo!</p>
+		</Slide>
+		{#each people as person}
+			<Slide
+				video="https://download-video.akamaized.net/v3-1/download/5151fb41-6bd9-4d60-8658-41d1783c18a8/ebd0bd5b/cGV4ZWxzLW1hdGhldXMtZGUtbW9yYWVzLWd1Z2VsbWltLTE1NzEzMzQwICg3MjBwKS5tcDQ?__token__=st=1703274690~exp=1703361210~acl=%2Fv3-1%2Fdownload%2F5151fb41-6bd9-4d60-8658-41d1783c18a8%2Febd0bd5b%2FcGV4ZWxzLW1hdGhldXMtZGUtbW9yYWVzLWd1Z2VsbWltLTE1NzEzMzQwICg3MjBwKS5tcDQ%2A~hmac=3a449497b3d75480a4d28f6678939e7711ab5e778a3f93276ed8f76f447a3bed&r=dXMtZWFzdDE%3D"
+				animate
+				on:in={() => runAnnouncer(person.sound)}
 			>
-				{$circle.x.toFixed(0)}
-			</text>
-		</svg>
-	</Slide>
-</Presentation>
+				<p class="font-bold text-8xl">Bienvenido {person.name}</p>
+			</Slide>
+		{/each}
+	</Presentation>
+{/if}
