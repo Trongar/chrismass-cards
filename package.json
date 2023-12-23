@@ -5,7 +5,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"start": "vite preview --host",
+		"start": "node ./build/index.js",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
@@ -37,6 +37,7 @@
 	"dependencies": {
 		"@fontsource-variable/jetbrains-mono": "^5.0.18",
 		"@fontsource-variable/manrope": "^5.0.17",
+		"@sveltejs/adapter-node": "^2.0.2",
 		"d3-interpolate": "^3.0.1",
 		"firebase": "^10.7.1",
 		"reveal.js": "^5.0.2"
