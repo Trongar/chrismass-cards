@@ -5,7 +5,8 @@
 		"RUN mkdir -p /usr/src/app",
 		"COPY ./ /usr/src/app",
 		"WORKDIR /usr/src/app",
-		"RUN npm install ",
+		"RUN npm install --omit=dev",
+		"CMD [ \"ls\", \"-f\" ]",
 		"CMD [ \"npm\", \"start\" ]"
 	]
 }
